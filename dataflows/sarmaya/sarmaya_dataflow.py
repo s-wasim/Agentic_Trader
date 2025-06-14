@@ -2,24 +2,20 @@ import time
 import re
 
 from helpers.env_vars import ENV_VARS
-from dataflows.helper.web_drivers import WEB_DRIVERS
 from dataflows.base_web import BaseWebDriver
+from dataflows.helper.web_drivers import WEB_DRIVERS
+from dataflows.sarmaya.sarmaya_helpers import create_table_helper
 
-import requests
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class SarmayaDataflow(BaseWebDriver):
-    EXTRACT_GROUPS = [
-        "Payouts",
-        "Technicals",
-        "Financials",
-    ]
     def __init__(self):
         super().__init__(
             WEB_DRIVERS.CHROME_DRIVER(
+                '--log-level=3',
                 driver_path=ENV_VARS.CHROME_WEB_DRIVER_PATH.value
                 )
             )
@@ -37,20 +33,41 @@ class SarmayaDataflow(BaseWebDriver):
                 for elem in self.driver.execute_script(f"return $('#{data_gate_id}').DataTable().data().toArray()")
             ]
         )]
-    
-    def get_ticker_detail(self, extension_url, wait_time=2):
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Referer": None,
-            "Accept": "application/json, text/javascript, */*; q=0.01"
-        }
-        def get_ticker_data(url):
-            nonlocal headers
-            headers['Referer'] = url
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            return response.text
 
+    @create_table_helper
+    def create_table_normal(self, *args, **kwargs):
+        tables = []
+        for table in kwargs['soup_obj'].select('table'):
+            # Extract headers
+            tbl_data = {th.get_text(strip=True): [] for th in table.select('thead tr th')}
+            # Extract rows
+            for row in table.select('tbody tr'):
+                for header, cell in zip(tbl_data.keys(), row.find_all('td')):
+                    tbl_data[header].append(cell.get_text(strip=True))
+            tables.append(pd.DataFrame(tbl_data))
+        return tables 
+    @create_table_helper
+    def create_table_pivoted(self, *args, **kwargs):
+        tables = []
+        for table in kwargs['soup_obj'].select('table'):
+            # Extract headers
+            tbl_data = {}
+            for i, row in enumerate(table.select('tbody tr')):
+                cells = row.find_all('th') if i == 0 else row.find_all('td')
+                header = cells[0].get_text(strip=True)
+                values = [cell.get_text(strip=True) for cell in cells[1:]]
+                if len(header) == len(values) == 0:
+                    continue
+                tbl_data[header] = values
+            tables.append(pd.DataFrame(tbl_data))
+        return tables
+
+    def get_ticker_detail(self, extension_url, wait_time=2): 
+        EXTRACT_GROUPS = {
+            "Payouts": self.create_table_normal,
+            "Technicals": self.create_table_normal,
+            "Financials": self.create_table_pivoted
+        }
         ticker_link = f'{self.base_url}{extension_url}#peers'
         # Get page
         self.driver.get(ticker_link)
@@ -61,16 +78,15 @@ class SarmayaDataflow(BaseWebDriver):
         )
         # Find the tab by href
         return {
-            a_tag.text: get_ticker_data(a_tag.get_attribute('href'))
+            a_tag.text: EXTRACT_GROUPS[a_tag.text](get_url=a_tag.get_attribute('href'))
             for a_tag in self.driver.find_elements(By.CSS_SELECTOR, '#nav-tab a')
-            if a_tag.text in self.EXTRACT_GROUPS
+            if a_tag.text in EXTRACT_GROUPS.keys()
         }
 
 if __name__ == "__main__":
     with SarmayaDataflow() as dataflow:
         # Get all share links
-        # links = dataflow.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
-        links = [('DCR', 'psx/company/DCR')]
+        links = dataflow.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
         symbol_data = {}
         for link in links:
             print(f'Getting details for ticker: {link[0]}')
