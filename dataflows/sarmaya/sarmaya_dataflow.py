@@ -1,12 +1,14 @@
 import time
 import re
+import os
 
 from helpers.env_vars import ENV_VARS
 from dataflows.base_web import BaseWebDriver
 from dataflows.helper.web_drivers import WEB_DRIVERS
-from dataflows.sarmaya.sarmaya_helpers import create_table_helper
+from dataflows.sarmaya.sarmaya_helpers import create_table_helper, dump_in_directory
 
 import pandas as pd
+from tqdm import tqdm
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -87,8 +89,18 @@ if __name__ == "__main__":
     with SarmayaDataflow() as dataflow:
         # Get all share links
         links = dataflow.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
-        symbol_data = {}
-        for link in links:
-            print(f'Getting details for ticker: {link[0]}')
-            symbol_data[link[0]] = dataflow.get_ticker_detail(extension_url=link[1])
-    print(symbol_data)
+        # Create Store_Files directory if it doesn't exist
+        base_dir = os.path.join(os.getcwd(), 'Store_Files')
+        os.makedirs(base_dir, exist_ok=True)
+
+        with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
+            for link in pbar:
+                ticker = link[0]
+                pbar.set_postfix(ticker=ticker)
+                # Skip if ticker folder already exists
+                if os.path.exists(os.path.join(base_dir, ticker)):
+                    continue
+                # Get data
+                symbol_data = dataflow.get_ticker_detail(extension_url=link[1])
+                # dump in directory
+                dump_in_directory(base_dir, ticker, symbol_data)
