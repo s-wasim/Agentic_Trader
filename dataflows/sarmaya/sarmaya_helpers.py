@@ -26,7 +26,7 @@ def dump_in_directory(base_dir, ticker, symbol_data):
         # Create category subdirectory
         category_dir = os.path.join(ticker_dir, category)
         os.makedirs(category_dir, exist_ok=True)
-    # Save each dataframe in the list
-    for i, df in enumerate(dataframes):
-        filename = f"{ticker}_{category}_{i}_{timestamp}.csv"
-        df.to_csv(os.path.join(category_dir, filename), index=False)
+        # Save each dataframe in the list
+        for i, df in enumerate(dataframes):
+            filename = f"{ticker}_{category}_{i}_{timestamp}.csv"
+            df.to_csv(os.path.join(category_dir, filename), index=False)
