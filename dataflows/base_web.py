@@ -8,5 +8,6 @@ class BaseWebDriver():
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        print('Destroying Web Driver')
         self.driver.quit()
-        print('Web driver destroyed')
+        print('Web Driver Destroyed')
