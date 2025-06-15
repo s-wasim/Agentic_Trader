@@ -43,8 +43,27 @@ The primary objective of this version is to establish the foundational data inge
 * Ensure that the system reliably collects data from Sarmaya.pk and optionally from financial news sources.
 * Lay the groundwork for later enhancements, with a focus on code quality.
 
+--- 
+
+## Version 2 - Data Cleaning and Context Database
+
+The primary objective here is to create a vector DB and relational DB after cleaning the data to produce a more cohesive structure. This version aims to evaluate the Feasibility of teh two as well. i.e. evaluate if Vector DB outperforms a relational DB and vice-versa.
+
+--- 
+
+### Components
+
+#### 1. **Relational Database in MySQL**
+* *Details to be added based on implementation plan*
+
+#### 2. **Vector Database compatible with Groq**
+* *Details to be added based on implementation plan*
+
 ---
 
-### Note
+### Project Scope (V2 Summary)
+* *Summary to be added soon*
 
-This version is solely focused on data collection and pipeline orchestration. Further versions will build upon this data foundation to develop the AI agent's analysis and debate capabilities.
+---
+
+***Note:*** *Future versions will build upon V1 & V2 to create a complete structured AI agent capable of analysing comapnies and suggesting investment options based on investment goals.*

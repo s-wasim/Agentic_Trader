@@ -1,0 +1,7 @@
+env
+.env
+__pycache__
+chromedriver-win64/
+.vscode/
+Store_Files/
+docker/
