@@ -12,7 +12,7 @@ def create_table_helper(func):
         response = requests.get(kwargs['get_url'], headers=headers)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
-        return func(soup_obj=soup, *args, **kwargs)
+        return func(soup_obj=soup, response_text=response.text, *args, **kwargs)
     return create_table
 
 def dump_in_directory(base_dir, ticker, symbol_data):

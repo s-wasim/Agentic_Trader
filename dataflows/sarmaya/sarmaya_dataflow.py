@@ -1,6 +1,7 @@
 import time
 import re
 import os
+import json
 
 from helpers.env_vars import ENV_VARS
 from dataflows.base_web import BaseWebDriver
@@ -63,12 +64,22 @@ class SarmayaDataflow(BaseWebDriver):
                 tbl_data[header] = values
             tables.append(pd.DataFrame(tbl_data))
         return tables
+    @create_table_helper
+    def get_ticker_price_history(self, *args, **kwargs):
+        # Use regex to extract jsonfile variable
+        match = re.search(r'var jsonfile = (.*);\n', kwargs['response_text'])
+        temp = json.loads(match.group(1))
+        return [pd.DataFrame.from_dict({
+            'year': [data['s_date'] for data in temp['data']], 
+            'price': [data['s_close'] for data in temp['data']]
+        })]
 
     def get_ticker_detail(self, extension_url, wait_time=2): 
         EXTRACT_GROUPS = {
             "Payouts": self.create_table_normal,
             "Technicals": self.create_table_normal,
-            "Financials": self.create_table_pivoted
+            "Financials": self.create_table_pivoted,
+            "20y": self.get_ticker_price_history
         }
         ticker_link = f'{self.base_url}{extension_url}#peers'
         # Get page
@@ -80,7 +91,7 @@ class SarmayaDataflow(BaseWebDriver):
         )
         # Find the tab by href
         return {
-            a_tag.text: EXTRACT_GROUPS[a_tag.text](get_url=a_tag.get_attribute('href'))
+            a_tag.text if a_tag.text != '20y' else 'Price': EXTRACT_GROUPS[a_tag.text](get_url=a_tag.get_attribute('href'))
             for a_tag in self.driver.find_elements(By.CSS_SELECTOR, '#nav-tab a')
             if a_tag.text in EXTRACT_GROUPS.keys()
         }
