@@ -29,4 +29,5 @@ while attempts < max_allowed:
         print("ERR: DOM NOT FULLY INJECTED\nQuitting driver and restarting process")
         attempts += 1
         time.sleep(10)
+    attempts = max_allowed + 1
 print(f"Total attempts needed: {attempts}/{max_allowed}")
