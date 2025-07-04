@@ -99,6 +99,9 @@ class SarmayaDataflow(BaseWebDriver):
         WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, 'nav-tab'))
         )
+        # Scroll to the bottom to trigger DOM population
+        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
         # Find the tab by href
         return {
             a_tag.text if a_tag.text != '20y' else 'Price': EXTRACT_GROUPS[a_tag.text](get_url=a_tag.get_attribute('href'))
@@ -125,3 +128,4 @@ if __name__ == "__main__":
                 symbol_data = dataflow.get_ticker_detail(extension_url=link[1])
                 # dump in directory
                 dump_in_directory(base_dir, ticker, symbol_data)
+                time.sleep(5) # Nap for 5 seconds to ensure requests don't get blocked
