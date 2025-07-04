@@ -13,15 +13,25 @@ from tqdm import tqdm
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 class SarmayaDataflow(BaseWebDriver):
-    def __init__(self):
-        super().__init__(
-            WEB_DRIVERS.CHROME_DRIVER(
-                '--log-level=3',
-                driver_path=ENV_VARS.CHROME_WEB_DRIVER_PATH.value
+    def __init__(self, driver):
+        match driver:
+            case 'chrome':
+                driver = WEB_DRIVERS.CHROME_DRIVER(
+                    '--log-level=3',
+                    driver_path=ENV_VARS.CHROME_WEB_DRIVER_PATH.value,
+                    option=ChromeOptions
                 )
-            )
+            case 'firefox':
+                driver = WEB_DRIVERS.FIREFOX_DRIVER(
+                    '--log-level=3',
+                    driver_path=ENV_VARS.FIREFOX_WEB_DRIVER_PATH.value,
+                    option=FirefoxOptions
+                )
+        super().__init__(driver)
         self.base_url = 'https://sarmaaya.pk/'
 
     def get_page_detail(self, extension_url, data_gate_id, wait_time=2):
@@ -97,7 +107,7 @@ class SarmayaDataflow(BaseWebDriver):
         }
 
 if __name__ == "__main__":
-    with SarmayaDataflow() as dataflow:
+    with SarmayaDataflow("firefox") as dataflow:
         # Get all share links
         links = dataflow.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
         # Create Store_Files directory if it doesn't exist
