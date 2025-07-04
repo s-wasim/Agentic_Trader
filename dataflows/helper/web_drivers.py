@@ -3,7 +3,6 @@ from enum import Enum
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.service import Service as FirefoxService
 
 def initialize_driver(func):
