@@ -72,6 +72,10 @@ class SarmayaDataflow(BaseWebDriver):
                 if len(header) == len(values) == 0:
                     continue
                 tbl_data[header] = values
+            if len(tbl_data['Year']) == 0:
+                if len(tables) == 0:
+                    return []
+                tbl_data['Year'] = tables[-1]['Year'].values.tolist()
             tables.append(pd.DataFrame(tbl_data))
         return tables
     @create_table_helper
