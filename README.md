@@ -1,7 +1,3 @@
-Got it. Here’s a comprehensive README elaborating only on what you’ve provided, without introducing any new details:
-
----
-
 # PSX Trading Debate AI Agent — V1 Dataflows
 
 This repository is part of an ongoing project aimed at building a comprehensive AI agent capable of understanding and debating trading choices, specifically focused on the Pakistan Stock Exchange (PSX).
