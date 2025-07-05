@@ -2,8 +2,23 @@ import os
 import re
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
+from dataprocessors.base_processor import BaseProcessor
 
-class SarmayaDataprocessor:
+class SarmayaDataprocessor(BaseProcessor):
+    def __init__(self):
+        super().__init__()
+        self.__DATA_PROC_FUNCS = {
+            'Financials': SarmayaDataprocessor.process_financial_dfs,
+            'Payouts': SarmayaDataprocessor.process_payout_dfs,
+            'Price': SarmayaDataprocessor.process_price_dfs,
+            'Technicals': SarmayaDataprocessor.process_technical_dfs
+        }
+
+    @property
+    def data_processing_functions(self):
+        return self.__DATA_PROC_FUNCS
+
     @staticmethod
     def process_financial_dfs(dataframes):
         def proc_col(column):
@@ -57,21 +72,39 @@ class SarmayaDataprocessor:
             return pd.concat([df1, df2], axis=0)
         return df1
     
-DATA_PROC_FUNCS = {
-    'Financials': SarmayaDataprocessor.process_financial_dfs,
-    'Payouts': SarmayaDataprocessor.process_payout_dfs,
-    'Price': SarmayaDataprocessor.process_price_dfs,
-    'Technicals': SarmayaDataprocessor.process_technical_dfs
-}
+    def process_data(self, read_dir, store_dir):
+        tickers = os.listdir(read_dir)
+        with tqdm(
+            tickers, desc="Processing tickers", 
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}] {postfix}",
+            postfix="ticker: None"
+        ) as pbar:
+            for ticker in pbar:
+                pbar.set_postfix(ticker=ticker)
+                ticker_read_path = os.path.join(read_dir, ticker)
+                ticker_store_path = os.path.join(store_dir, ticker)
+                os.makedirs(ticker_store_path, exist_ok=True)
+
+                for file_type in os.listdir(ticker_read_path):
+                    type_read_path = os.path.join(ticker_read_path, file_type)
+                    type_store_path = os.path.join(ticker_store_path, file_type)
+                    os.makedirs(type_store_path, exist_ok=True)
+
+                    file_paths = [
+                        os.path.join(type_read_path, file_name)
+                        for file_name in os.listdir(type_read_path)
+                    ]
+                    dataframes = [pd.read_csv(fp) for fp in file_paths]
+                    if len(dataframes) == 0:
+                        continue
+                    processed_dfs = self.data_processing_functions[file_type](dataframes)
+
+                for file_name, processed_df in zip(os.listdir(type_read_path), processed_dfs if isinstance(processed_dfs, list) else [processed_dfs]):
+                    processed_df.to_csv(os.path.join(type_store_path, file_name), index=False)
 
 if __name__ == '__main__':
-    df = pd.read_csv('Store_Files\SEARL\Price\SEARL_Price_0_20250615_160856.csv')
-    base_dir = 'Store_Files\SEARL'
-    dfs = []
-    for folder in os.listdir(base_dir):
-        dfs.append(DATA_PROC_FUNCS[folder]([
-            pd.read_csv(os.path.join(base_dir, folder, file)) 
-            for file in os.listdir(os.path.join(base_dir, folder))
-        ]))
-    print(dfs)
+    base_dir = 'Store_Files'
+    save_dir = 'Save_Files'
+    obj = SarmayaDataprocessor()
+    obj.process_data(base_dir, save_dir)
     
