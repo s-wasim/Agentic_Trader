@@ -15,10 +15,11 @@ class MysqlConnector(BaseConnector):
             self._connection.close()
 
     def execute_query(self, query, *args, **kwargs):
+        res_set = super().execute_query(query, *args, **kwargs)
         return pd.DataFrame(
-            super().execute_query(query, *args, **kwargs),
+            res_set,
             columns=[col[0] for col in self._cursor.description]
-        )
+        ) if len(res_set) > 0 else None
 
 if __name__ == "__main__":
     with MysqlConnector('localhost', 'root', 'AGENTIC_TRADER') as db:
