@@ -3,7 +3,9 @@ import re
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from shutil import rmtree
 from dataprocessors.base_processor import BaseProcessor
+from database.connectors import MysqlConnector
 
 class SarmayaDataprocessor(BaseProcessor):
     def __init__(self):
@@ -74,6 +76,9 @@ class SarmayaDataprocessor(BaseProcessor):
     
     def process_data(self, read_dir, store_dir):
         tickers = os.listdir(read_dir)
+        if os.path.exists(store_dir):
+            rmtree(store_dir)
+            os.mkdir(store_dir)
         with tqdm(
             tickers, desc="Processing tickers", 
             bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}] {postfix}",
@@ -99,12 +104,16 @@ class SarmayaDataprocessor(BaseProcessor):
                         continue
                     processed_dfs = self.data_processing_functions[file_type](dataframes)
 
-                for file_name, processed_df in zip(os.listdir(type_read_path), processed_dfs if isinstance(processed_dfs, list) else [processed_dfs]):
-                    processed_df.to_csv(os.path.join(type_store_path, file_name), index=False)
+                    for file_name, processed_df in zip(
+                        os.listdir(type_read_path), 
+                        processed_dfs if isinstance(processed_dfs, list) else [processed_dfs]
+                    ):
+                        processed_df.to_csv(os.path.join(type_store_path, file_name), index=False)
 
 if __name__ == '__main__':
     base_dir = 'Store_Files'
     save_dir = 'Save_Files'
     obj = SarmayaDataprocessor()
-    obj.process_data(base_dir, save_dir)
+    # obj.process_data(base_dir, save_dir)
+    obj.store_in_db()
     
