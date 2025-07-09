@@ -3,9 +3,7 @@ import re
 import os
 import json
 
-from helpers.env_vars import ENV_VARS
 from dataflows.base_web import BaseWebDriver
-from dataflows.helper.web_drivers import WEB_DRIVERS
 from dataflows.sarmaya.sarmaya_helpers import create_table_helper, dump_in_directory
 
 import pandas as pd
@@ -13,24 +11,9 @@ from tqdm import tqdm
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 class SarmayaDataflow(BaseWebDriver):
     def __init__(self, driver):
-        match driver:
-            case 'chrome':
-                driver = WEB_DRIVERS.CHROME_DRIVER(
-                    '--log-level=3',
-                    driver_path=ENV_VARS.CHROME_WEB_DRIVER_PATH.value,
-                    option=ChromeOptions
-                )
-            case 'firefox':
-                driver = WEB_DRIVERS.FIREFOX_DRIVER(
-                    '--log-level=3',
-                    driver_path=ENV_VARS.FIREFOX_WEB_DRIVER_PATH.value,
-                    option=FirefoxOptions
-                )
         super().__init__(driver)
         self.base_url = 'https://sarmaaya.pk/'
 
