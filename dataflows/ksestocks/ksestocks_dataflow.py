@@ -16,21 +16,28 @@ class KSEStocksDataflow:
         modified_data = {
             'TickerName':[], 'CompanyName':[], 'Sector':[], 'IsActive':[]
         }
-        sector = None
-
+        def update_dict():
+            nonlocal modified_data, prev_row, sector
+            modified_data['TickerName'].append(prev_row[0])
+            modified_data['CompanyName'].append(prev_row[1])
+            modified_data['Sector'].append(sector)
+            modified_data['IsActive'].append(True)
+        prev_row, sector = None, None
         for _, row in df.iterrows():
-            if row[0] == "Symbol":
-                sector = row[0]  # Technically redundant, but keeps logic consistent
+            if prev_row is None:
+                prev_row = row
                 continue
-            if sector:
-                modified_data['TickerName'].append(row[0])
-                modified_data['CompanyName'].append(row[1])
-                modified_data['Sector'].append(sector)
-                modified_data['IsActive'].append(True)
+            if row[0] == "Symbol": # Found sector, continue.
+                sector = prev_row[0]
+                prev_row = None
+                continue
+            update_dict()
+            prev_row = row
+        update_dict()
         return pd.DataFrame(modified_data)
 
 if __name__ == "__main__":
     dataflow = KSEStocksDataflow()
-    base_dir = os.path.join(os.getcwd(), 'Store_Files')
+    base_dir = os.path.join(os.getcwd(), 'Save_Files')
     df = dataflow.get_table()
     df.to_csv(os.path.join(base_dir, 'ticker_details.csv'), index=False)
