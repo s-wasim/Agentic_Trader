@@ -39,7 +39,7 @@ class SarmayaDataloader(BaseDataloader):
         base_path = os.path.join(os.getcwd(), kwargs['base_path'])
         with self.db('localhost', 'root', 'AGENTIC_TRADER') as db,\
             tqdm(
-                os.listdir(base_path), desc="Processing tickers", 
+                os.listdir(base_path), desc="Loading tickers", 
                 bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", 
                 postfix=dict(ticker="None")
             ) as pbar:

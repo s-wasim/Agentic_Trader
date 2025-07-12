@@ -11,7 +11,7 @@ if __name__ == "__main__":
                 'use_context': True, 
                 'kwargs': {'store_dir': 'Store_Files', 'retries': 5, 'nap_time': 1}
             },
-            KSEStocksDataflow: {'init_args': [], 'use_context': False, 'kwargs': {'store_dir': "Store_Files"}}
+            KSEStocksDataflow: {'init_args': [], 'use_context': False, 'kwargs': {'store_dir': "Save_Files"}}
         },
         transform={
             SarmayaDataprocessor(): {'read_dir': 'Store_Files', 'store_dir': 'Save_Files'}
