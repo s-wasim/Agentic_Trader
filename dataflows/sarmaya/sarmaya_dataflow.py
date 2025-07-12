@@ -12,11 +12,18 @@ from tqdm import tqdm
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 
 class SarmayaDataflow(BaseWebDriver):
     def __init__(self, driver):
         super().__init__(driver)
         self.base_url = 'https://sarmaaya.pk/'
+        self.EXTRACT_GROUPS = {
+            "Payouts": self.create_table_normal,
+            "Technicals": self.create_table_normal,
+            "Financials": self.create_table_pivoted,
+            "20y": self.get_ticker_price_history
+        }
 
     def get_page_detail(self, extension_url, data_gate_id, wait_time=2):
         shariah_link = f'{self.base_url}{extension_url}'
@@ -73,52 +80,42 @@ class SarmayaDataflow(BaseWebDriver):
         })]
 
     def get_ticker_detail(self, extension_url, wait_time=2): 
-        EXTRACT_GROUPS = {
-            "Payouts": self.create_table_normal,
-            "Technicals": self.create_table_normal,
-            "Financials": self.create_table_pivoted,
-            "20y": self.get_ticker_price_history
-        }
         ticker_link = f'{self.base_url}{extension_url}#peers'
         # Get page
         self.driver.get(ticker_link)
-        time.sleep(wait_time)
-        # Wait until nav-tab div appears (DOM is fully injected now)
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'nav-tab'))
-        )
         # Scroll to the bottom to trigger DOM population
         self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
+        # Wait until nav-tab div appears (DOM is fully injected now)
+        WebDriverWait(self.driver, wait_time).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, '#nav-tab a'))
+        )
+        # Run JS to extract all anchor tag text/hrefs in one shot (safe and fast)
+        tags_raw = self.driver.execute_script("""
+            return Array.from(document.querySelectorAll('#nav-tab a'))
+                .map(a => [a.innerText, a.href]);
+        """)
+        tags = [(text, href) for text, href in tags_raw if text in self.EXTRACT_GROUPS.keys()]
         # Find the tab by href
         return {
-            a_tag.text if a_tag.text != '20y' else 'Price': EXTRACT_GROUPS[a_tag.text](get_url=a_tag.get_attribute('href'))
-            for a_tag in self.driver.find_elements(By.CSS_SELECTOR, '#nav-tab a')
-            if a_tag.text in EXTRACT_GROUPS.keys()
+            tag_text if tag_text != '20y' else 'Price': self.EXTRACT_GROUPS[tag_text](get_url=tag_url)
+            for tag_text, tag_url in tags
         }
 
     def main(self, *args, **kwargs):
-        self.__enter__()
-        try:
-            # Get all share links
-            links = self.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
-            # Create Store_Files directory if it doesn't exist
-            base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
-            os.makedirs(base_dir, exist_ok=True)
-
-            with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
-                for link in pbar:
-                    ticker = link[0]
-                    pbar.set_postfix(ticker=ticker)
-                    # Skip if ticker folder already exists
-                    if os.path.exists(os.path.join(base_dir, ticker)):
-                        continue
-                    # Get data
-                    symbol_data = self.get_ticker_detail(extension_url=link[1])
-                    # dump in directory
-                    dump_in_directory(base_dir, ticker, symbol_data)
-                    time.sleep(5) # Nap for 5 seconds to ensure requests don't get blocked
-        except Exception as e:
-            raise e
-        finally:
-            self.__exit__(*sys.exc_info())
+        # Get all share links
+        links = self.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
+        # Create Store_Files directory if it doesn't exist
+        base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+        os.makedirs(base_dir, exist_ok=True)
+        with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
+            for link in pbar:
+                ticker = link[0]
+                pbar.set_postfix(ticker=ticker)
+                # Skip if ticker folder already exists
+                if os.path.exists(os.path.join(base_dir, ticker)):
+                    continue
+                # Get data
+                symbol_data = self.get_ticker_detail(extension_url=link[1])
+                # dump in directory
+                dump_in_directory(base_dir, ticker, symbol_data)
+                time.sleep(kwargs.get('nap_time', 1)) # Nap for specified time
