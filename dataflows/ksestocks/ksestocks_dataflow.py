@@ -5,7 +5,7 @@ import pandas as pd
 from bs4 import BeautifulSoup as bs
 
 class KSEStocksDataflow:
-    def __init__(self):
+    def __init__(self, *args):
         self.base_url = 'https://www.ksestocks.com/ListedCompanies'
         response = requests.get(self.base_url)
         self.soup = bs(response.content, 'html.parser')
