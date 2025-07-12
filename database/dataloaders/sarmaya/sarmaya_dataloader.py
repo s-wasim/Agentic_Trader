@@ -35,8 +35,8 @@ class SarmayaDataloader(BaseDataloader):
         df['TickerFinancesID'] = fk_id
         self._dump_df_to_db(df, kwargs['conn_db'], kwargs['table_name'], False)        
 
-    def main(self, base_path):
-        base_path = os.path.join(os.getcwd(), base_path)
+    def main(self, *args, **kwargs):
+        base_path = os.path.join(os.getcwd(), kwargs['base_path'])
         with self.db('localhost', 'root', 'AGENTIC_TRADER') as db,\
             tqdm(
                 os.listdir(base_path), desc="Processing tickers", 
@@ -82,7 +82,3 @@ class SarmayaDataloader(BaseDataloader):
                             df.columns = self.tbl_mapping[file_type]['columns']
                             df['TickerName'] = ticker_name
                             self._dump_df_to_db(df, db, self.tbl_mapping[file_type]['tbl_name'], False)
-
-if __name__ == '__main__':
-    loader = SarmayaDataloader(DBTypes.MYSQL_DB)
-    loader.main(base_path='Save_Files')

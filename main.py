@@ -9,7 +9,7 @@ def etl(extract, transform, load):
     else:
         extract()
     if isinstance(transform, dict):
-        for t, kwargs in transform:
+        for t, kwargs in transform.items():
             t(**kwargs)
     else:
         transform()
@@ -28,5 +28,5 @@ if __name__ == "__main__":
         transform={
             SarmayaDataprocessor(): {'read_dir': 'Store_Files', 'store_dir': 'Save_Files'}
         },
-        load=SarmayaDataloader(DBTypes.MYSQL_DB)
+        load={SarmayaDataloader(DBTypes.MYSQL_DB): {'base_path': 'Save_Files'}}
     )

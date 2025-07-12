@@ -32,4 +32,4 @@ class BaseWebDriver():
         print('Web Driver Destroyed')
 
     def __call__(self, *args, **kwargs):
-        self.main(args, kwargs)
+        self.main(*args, **kwargs)

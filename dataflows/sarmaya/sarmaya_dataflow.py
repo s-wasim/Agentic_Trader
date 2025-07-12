@@ -2,6 +2,7 @@ import time
 import re
 import os
 import json
+import sys
 
 from dataflows.base_web import BaseWebDriver
 from dataflows.sarmaya.sarmaya_helpers import create_table_helper, dump_in_directory
@@ -120,4 +121,4 @@ class SarmayaDataflow(BaseWebDriver):
         except Exception as e:
             raise e
         finally:
-            self.__exit__()
+            self.__exit__(*sys.exc_info())

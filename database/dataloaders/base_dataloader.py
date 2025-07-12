@@ -34,5 +34,5 @@ class BaseDataloader:
             index=False
         )
 
-    def __call__(self):
-        self.main()
+    def __call__(self, *args, **kwargs):
+        self.main(*args, **kwargs)
