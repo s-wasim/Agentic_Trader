@@ -30,3 +30,6 @@ class BaseWebDriver():
         print('Destroying Web Driver')
         self.driver.quit()
         print('Web Driver Destroyed')
+
+    def __call__(self, *args, **kwargs):
+        self.main(args, kwargs)

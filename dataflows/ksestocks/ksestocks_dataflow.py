@@ -36,8 +36,7 @@ class KSEStocksDataflow:
         update_dict()
         return pd.DataFrame(modified_data)
 
-if __name__ == "__main__":
-    dataflow = KSEStocksDataflow()
-    base_dir = os.path.join(os.getcwd(), 'Save_Files')
-    df = dataflow.get_table()
-    df.to_csv(os.path.join(base_dir, 'ticker_details.csv'), index=False)
+    def __call__(self, *args, **kwargs):
+        base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+        df = self.get_table()
+        df.to_csv(os.path.join(base_dir, 'ticker_details.csv'), index=False)

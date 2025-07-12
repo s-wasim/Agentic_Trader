@@ -96,23 +96,28 @@ class SarmayaDataflow(BaseWebDriver):
             if a_tag.text in EXTRACT_GROUPS.keys()
         }
 
-if __name__ == "__main__":
-    with SarmayaDataflow("firefox") as dataflow:
-        # Get all share links
-        links = dataflow.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
-        # Create Store_Files directory if it doesn't exist
-        base_dir = os.path.join(os.getcwd(), 'Store_Files')
-        os.makedirs(base_dir, exist_ok=True)
+    def main(self, *args, **kwargs):
+        self.__enter__()
+        try:
+            # Get all share links
+            links = self.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
+            # Create Store_Files directory if it doesn't exist
+            base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+            os.makedirs(base_dir, exist_ok=True)
 
-        with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
-            for link in pbar:
-                ticker = link[0]
-                pbar.set_postfix(ticker=ticker)
-                # Skip if ticker folder already exists
-                if os.path.exists(os.path.join(base_dir, ticker)):
-                    continue
-                # Get data
-                symbol_data = dataflow.get_ticker_detail(extension_url=link[1])
-                # dump in directory
-                dump_in_directory(base_dir, ticker, symbol_data)
-                time.sleep(5) # Nap for 5 seconds to ensure requests don't get blocked
+            with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
+                for link in pbar:
+                    ticker = link[0]
+                    pbar.set_postfix(ticker=ticker)
+                    # Skip if ticker folder already exists
+                    if os.path.exists(os.path.join(base_dir, ticker)):
+                        continue
+                    # Get data
+                    symbol_data = self.get_ticker_detail(extension_url=link[1])
+                    # dump in directory
+                    dump_in_directory(base_dir, ticker, symbol_data)
+                    time.sleep(5) # Nap for 5 seconds to ensure requests don't get blocked
+        except Exception as e:
+            raise e
+        finally:
+            self.__exit__()

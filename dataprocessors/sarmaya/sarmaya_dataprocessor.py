@@ -74,7 +74,8 @@ class SarmayaDataprocessor(BaseProcessor):
             return pd.concat([df1, df2], axis=0)
         return df1
     
-    def process_data(self, read_dir, store_dir):
+    def main(self, *args, **kwargs):
+        read_dir, store_dir = kwargs['read_dir'], kwargs['store_dir']
         tickers = os.listdir(read_dir)
         if os.path.exists(store_dir):
             rmtree(store_dir)
@@ -110,10 +111,4 @@ class SarmayaDataprocessor(BaseProcessor):
                     ):
                         processed_df.to_csv(os.path.join(type_store_path, file_name), index=False)
 
-if __name__ == '__main__':
-    base_dir = 'Store_Files'
-    save_dir = 'Save_Files'
-    obj = SarmayaDataprocessor()
-    # obj.process_data(base_dir, save_dir)
-    obj.store_in_db()
     

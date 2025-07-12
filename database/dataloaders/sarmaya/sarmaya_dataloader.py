@@ -35,7 +35,7 @@ class SarmayaDataloader(BaseDataloader):
         df['TickerFinancesID'] = fk_id
         self._dump_df_to_db(df, kwargs['conn_db'], kwargs['table_name'], False)        
 
-    def load_data_to_db(self, base_path):
+    def main(self, base_path):
         base_path = os.path.join(os.getcwd(), base_path)
         with self.db('localhost', 'root', 'AGENTIC_TRADER') as db,\
             tqdm(
@@ -85,4 +85,4 @@ class SarmayaDataloader(BaseDataloader):
 
 if __name__ == '__main__':
     loader = SarmayaDataloader(DBTypes.MYSQL_DB)
-    loader.load_data_to_db(base_path='Save_Files')
+    loader.main(base_path='Save_Files')

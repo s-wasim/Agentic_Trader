@@ -33,3 +33,6 @@ class BaseDataloader:
             if_exists='append',
             index=False
         )
+
+    def __call__(self):
+        self.main()
