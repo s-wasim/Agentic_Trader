@@ -2,7 +2,7 @@ import time
 import re
 import os
 import json
-import sys
+from shutil import rmtree
 
 from dataflows.base_web import BaseWebDriver
 from dataflows.sarmaya.sarmaya_helpers import create_table_helper, dump_in_directory
@@ -106,6 +106,8 @@ class SarmayaDataflow(BaseWebDriver):
         links = self.get_page_detail(extension_url='psx/market/KMIALLSHR', data_gate_id='stock-screener')
         # Create Store_Files directory if it doesn't exist
         base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+        if kwargs.get('refresh'):
+            rmtree(base_dir)
         os.makedirs(base_dir, exist_ok=True)
         with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
             for link in pbar:
