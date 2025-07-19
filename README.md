@@ -2,6 +2,10 @@
 
 This repository is part of an ongoing project aimed at building a comprehensive AI agent capable of understanding and debating trading choices, specifically focused on the Pakistan Stock Exchange (PSX).
 
+## Setting up Docker Containers
+
+Use the DockerFile and the docker-compose.yaml (Curl from apache-airflow added MySQL for Data store). The docker file produces 
+
 ## Version 1 — Dataflows
 
 The primary objective of this version is to establish the foundational data ingestion pipelines that will power the AI agent. These dataflows will focus on collecting relevant trading data and financial information necessary for subsequent analysis and model development.
