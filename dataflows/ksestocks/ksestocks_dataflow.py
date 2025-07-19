@@ -4,8 +4,12 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 
+from helpers import Logger
+
 class KSEStocksDataflow:
     def __init__(self, *args):
+        _ = Logger(self.__class__)
+        self.log = _.logger
         self.base_url = 'https://www.ksestocks.com/ListedCompanies'
         response = requests.get(self.base_url)
         self.soup = bs(response.content, 'html.parser')
@@ -38,5 +42,8 @@ class KSEStocksDataflow:
 
     def __call__(self, *args, **kwargs):
         base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+        self.log.info("Downloading tickers")
         df = self.get_table()
+        self.log.info(f"Dumping tickers in {base_dir}")
         df.to_csv(os.path.join(base_dir, 'ticker_details.csv'), index=False)
+        self.log.info("Ticker download complete")

@@ -1,4 +1,4 @@
-from database.connectors.mysql import MysqlConnector
+from helpers import Logger
 
 def get_bridge_key(func):
         def inner(*args, **kwargs):
@@ -14,6 +14,8 @@ def get_bridge_key(func):
 
 class BaseDataloader:
     def __init__(self, db_type):
+        _ = Logger(type(self).__name__)
+        self.log = _.logger
         self.db = db_type.value
 
     def _add_str_to_db(self, *args, **kwargs):

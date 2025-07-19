@@ -6,3 +6,5 @@ chromedriver-win64/
 Store_Files/
 docker/
 Save_Files/
+logs/
+configs

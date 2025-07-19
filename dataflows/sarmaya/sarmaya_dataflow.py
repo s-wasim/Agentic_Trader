@@ -24,6 +24,9 @@ class SarmayaDataflow(BaseWebDriver):
             "Financials": self.create_table_pivoted,
             "20y": self.get_ticker_price_history
         }
+        self.log.info("Initialized SarmayaDataflow")
+        self.log.debug("self.base_url")
+        self.tries = 3
 
     def get_page_detail(self, extension_url, data_gate_id, wait_time=2):
         shariah_link = f'{self.base_url}{extension_url}'
@@ -107,17 +110,35 @@ class SarmayaDataflow(BaseWebDriver):
         # Create Store_Files directory if it doesn't exist
         base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
         if kwargs.get('refresh'):
-            rmtree(base_dir)
+            self.log.info("Refreshing directories")
+            if os.path.exists(base_dir):
+                self.log.warning(f"Clearing out base directory {base_dir} in 5 seconds...")
+                time.sleep(5)
+                rmtree(base_dir)
         os.makedirs(base_dir, exist_ok=True)
-        with tqdm(links, desc="Processing tickers", bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", postfix=dict(ticker="None")) as pbar:
-            for link in pbar:
-                ticker = link[0]
-                pbar.set_postfix(ticker=ticker)
-                # Skip if ticker folder already exists
-                if os.path.exists(os.path.join(base_dir, ticker)):
-                    continue
-                # Get data
-                symbol_data = self.get_ticker_detail(extension_url=link[1])
-                # dump in directory
-                dump_in_directory(base_dir, ticker, symbol_data)
-                time.sleep(kwargs.get('nap_time', 1)) # Nap for specified time
+        self.log.info("Starting ticker data extract")
+        x = 0
+        while True:
+            try:
+                for link in links:
+                    ticker = link[0]
+                    self.log.info(f"Processing ticker {ticker}")
+                    # Skip if ticker folder already exists
+                    if os.path.exists(os.path.join(base_dir, ticker)):
+                        self.log.info(f"Skipping ticker as it already exists")
+                        continue
+                    # Get data
+                    self.log.debug(f"Getting data from {link[1]}")
+                    symbol_data = self.get_ticker_detail(extension_url=link[1])
+                    # dump in directory
+                    self.log.info("Ticker dumped in directory")
+                    dump_in_directory(base_dir, ticker, symbol_data)
+                    self.log.info("Ticker fetched")
+                    time.sleep(kwargs.get('nap_time', 1)) # Nap for specified time
+                break
+            except Exception as e:
+                self.log.error(f"Error raised when fetching ticker data\n{e}")
+                self.log.info(f"Retrying {x}/{self.tries}")
+                x += 1
+                if x == self.tries:
+                    break
