@@ -17,6 +17,12 @@ class LogFormatter(logging.Formatter):
         formatter = self.formatters.get(record.levelno, self.formatters[logging.INFO])
         return formatter.format(record)
     
+class LogEmitter(logging.StreamHandler):
+    def __init__(self):
+        super().__init__()
+
+    def emit(self, record):
+        print(self.format(record))
     
 class Logger:
     def __init__(self, logger_name):
@@ -29,7 +35,7 @@ class Logger:
         formatter = LogFormatter()
 
         # --- Console Handler ---
-        console_handler = logging.Handler()
+        console_handler = LogEmitter()
         console_handler.setLevel(logging.DEBUG)
         console_handler.setFormatter(formatter)
         self._logger.addHandler(console_handler)

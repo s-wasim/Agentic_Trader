@@ -7,4 +7,4 @@ Store_Files/
 docker/
 Save_Files/
 logs/
-configs
+config/
