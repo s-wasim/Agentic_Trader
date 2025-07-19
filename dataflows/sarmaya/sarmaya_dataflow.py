@@ -26,7 +26,6 @@ class SarmayaDataflow(BaseWebDriver):
         }
         self.log.info("Initialized SarmayaDataflow")
         self.log.debug("self.base_url")
-        self.tries = 3
 
     def get_page_detail(self, extension_url, data_gate_id, wait_time=2):
         shariah_link = f'{self.base_url}{extension_url}'
@@ -118,9 +117,10 @@ class SarmayaDataflow(BaseWebDriver):
         os.makedirs(base_dir, exist_ok=True)
         self.log.info("Starting ticker data extract")
         x = 0
+        total = len(links)
         while True:
             try:
-                for link in links:
+                for i, link in enumerate(links):
                     ticker = link[0]
                     self.log.info(f"Processing ticker {ticker}")
                     # Skip if ticker folder already exists
@@ -130,15 +130,16 @@ class SarmayaDataflow(BaseWebDriver):
                     # Get data
                     self.log.debug(f"Getting data from {link[1]}")
                     symbol_data = self.get_ticker_detail(extension_url=link[1])
-                    # dump in directory
+                    # dump in directoryfrom
                     self.log.info("Ticker dumped in directory")
                     dump_in_directory(base_dir, ticker, symbol_data)
-                    self.log.info("Ticker fetched")
+                    self.log.info(f"Ticker fetched, Completed {i}/{total} Tickers")
                     time.sleep(kwargs.get('nap_time', 1)) # Nap for specified time
                 break
             except Exception as e:
                 self.log.error(f"Error raised when fetching ticker data\n{e}")
-                self.log.info(f"Retrying {x}/{self.tries}")
+                self.log.info(f"Retrying {x}/{kwargs['retries']}")
                 x += 1
-                if x == self.tries:
+                if x == kwargs['retries']:
                     break
+                time.sleep(5)

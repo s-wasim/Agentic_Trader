@@ -37,7 +37,7 @@ class SarmayaDataloader(BaseDataloader):
 
     def main(self, *args, **kwargs):
         base_path = os.path.join(os.getcwd(), kwargs['base_path'])
-        with self.db('localhost', 'root', 'AGENTIC_TRADER') as db,\
+        with self.db(kwargs['host'], 'root', 'AGENTIC_TRADER') as db,\
             tqdm(
                 os.listdir(base_path), desc="Loading tickers", 
                 bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {postfix}]", 

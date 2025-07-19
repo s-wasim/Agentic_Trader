@@ -1,4 +1,4 @@
-from helpers import Logger
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 def get_bridge_key(func):
         def inner(*args, **kwargs):
@@ -12,10 +12,8 @@ def get_bridge_key(func):
             func(fk_id=df['TickerFinancesID'].values[0], *args, **kwargs)
         return inner
 
-class BaseDataloader:
+class BaseDataloader(LoggingMixin):
     def __init__(self, db_type):
-        _ = Logger(type(self).__name__)
-        self.log = _.logger
         self.db = db_type.value
 
     def _add_str_to_db(self, *args, **kwargs):

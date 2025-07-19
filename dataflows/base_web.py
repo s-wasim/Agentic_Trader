@@ -1,14 +1,13 @@
+from airflow.utils.log.logging_mixin import LoggingMixin
+
 from helpers.env_vars import ENV_VARS
 from dataflows.helper.web_drivers import WEB_DRIVERS
 
-from helpers import Logger
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 
-class BaseWebDriver:
+class BaseWebDriver(LoggingMixin):
     def __init__(self, driver_option):
-        _ = Logger(type(self).__name__)
-        self.log = _.logger
         match driver_option:
             case 'chrome':
                 driver = WEB_DRIVERS.CHROME_DRIVER(
