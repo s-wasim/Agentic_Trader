@@ -2,8 +2,9 @@
     - Copy processed data to store in a structured DB
     - Add capability to switch to a Vector DB
 """
+from airflow.utils.log.logging_mixin import LoggingMixin
 
-class BaseProcessor:
+class BaseProcessor(LoggingMixin):
     def __init__(self):
         pass
 

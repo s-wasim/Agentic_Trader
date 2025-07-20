@@ -1,11 +1,15 @@
 import os
+import sys
 from io import StringIO
 import requests
+from shutil import rmtree
 import pandas as pd
 from bs4 import BeautifulSoup as bs
 
-class KSEStocksDataflow:
-    def __init__(self):
+from airflow.utils.log.logging_mixin import LoggingMixin
+
+class KSEStocksDataflow(LoggingMixin):
+    def __init__(self, *args):
         self.base_url = 'https://www.ksestocks.com/ListedCompanies'
         response = requests.get(self.base_url)
         self.soup = bs(response.content, 'html.parser')
@@ -38,5 +42,12 @@ class KSEStocksDataflow:
 
     def __call__(self, *args, **kwargs):
         base_dir = os.path.join(os.getcwd(), kwargs['store_dir'])
+        self.log.info("Downloading tickers")
         df = self.get_table()
+        self.log.info(f"Dumping tickers in {base_dir}")
+        if not os.path.exists(base_dir):
+            os.mkdir(base_dir)
+        else:
+            rmtree(base_dir)
         df.to_csv(os.path.join(base_dir, 'ticker_details.csv'), index=False)
+        self.log.info("Ticker download complete")

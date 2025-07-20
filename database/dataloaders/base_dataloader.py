@@ -1,4 +1,4 @@
-from database.connectors.mysql import MysqlConnector
+from airflow.utils.log.logging_mixin import LoggingMixin
 
 def get_bridge_key(func):
         def inner(*args, **kwargs):
@@ -12,7 +12,7 @@ def get_bridge_key(func):
             func(fk_id=df['TickerFinancesID'].values[0], *args, **kwargs)
         return inner
 
-class BaseDataloader:
+class BaseDataloader(LoggingMixin):
     def __init__(self, db_type):
         self.db = db_type.value
 
@@ -34,5 +34,5 @@ class BaseDataloader:
             index=False
         )
 
-    def __call__(self):
-        self.main()
+    def __call__(self, *args, **kwargs):
+        self.main(*args, **kwargs)

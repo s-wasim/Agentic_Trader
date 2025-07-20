@@ -75,10 +75,14 @@ class SarmayaDataprocessor(BaseProcessor):
         return df1
     
     def main(self, *args, **kwargs):
-        read_dir, store_dir = kwargs['read_dir'], kwargs['store_dir']
+        read_dir, store_dir = list(map(lambda x: os.path.join(os.getcwd(), x), [kwargs['read_dir'], kwargs['store_dir']]))
         tickers = os.listdir(read_dir)
         if os.path.exists(store_dir):
-            rmtree(store_dir)
+            for entry in os.listdir(store_dir):
+                _ = os.path.join(store_dir, entry)
+                if os.path.isdir(_):
+                    rmtree(_)
+        else:
             os.mkdir(store_dir)
         with tqdm(
             tickers, desc="Processing tickers", 
@@ -88,6 +92,8 @@ class SarmayaDataprocessor(BaseProcessor):
             for ticker in pbar:
                 pbar.set_postfix(ticker=ticker)
                 ticker_read_path = os.path.join(read_dir, ticker)
+                if ticker_read_path.endswith('csv'):
+                    continue
                 ticker_store_path = os.path.join(store_dir, ticker)
                 os.makedirs(ticker_store_path, exist_ok=True)
 
