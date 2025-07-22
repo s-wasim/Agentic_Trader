@@ -25,7 +25,7 @@ class SarmayaDataflow(BaseWebDriver):
             "20y": self.get_ticker_price_history
         }
         self.log.info("Initialized SarmayaDataflow")
-        self.log.debug("self.base_url")
+        self.log.info(f"{self.base_url}")
 
     def get_page_detail(self, extension_url, data_gate_id, wait_time=2):
         shariah_link = f'{self.base_url}{extension_url}'
@@ -118,8 +118,10 @@ class SarmayaDataflow(BaseWebDriver):
         self.log.info("Starting ticker data extract")
         x = 0
         total = len(links)
+        wait_time = 2
         while True:
             try:
+                skipped_count = 0
                 for i, link in enumerate(links):
                     ticker = link[0]
                     self.log.info(f"Processing ticker {ticker}")
@@ -127,8 +129,10 @@ class SarmayaDataflow(BaseWebDriver):
                     if os.path.exists(os.path.join(base_dir, ticker)):
                         self.log.info(f"Skipping ticker as it already exists")
                         continue
+                    if skipped_count > 0:
+                        self.log.info(f"Skipped {skipped_count} tickers as they already exist")
                     # Get data
-                    self.log.debug(f"Getting data from {link[1]}")
+                    self.log.info(f"Getting data from {link[1]}")
                     symbol_data = self.get_ticker_detail(extension_url=link[1])
                     # dump in directoryfrom
                     self.log.info("Ticker dumped in directory")
@@ -140,6 +144,7 @@ class SarmayaDataflow(BaseWebDriver):
                 self.log.error(f"Error raised when fetching ticker data\n{e}")
                 self.log.info(f"Retrying {x}/{kwargs['retries']}")
                 x += 1
+                wait_time *= 2
                 if x == kwargs['retries']:
                     break
                 time.sleep(5)
